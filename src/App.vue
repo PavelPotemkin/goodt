@@ -1,171 +1,110 @@
 <template>
     <div id="app">
-        <div class="search-bar">Здесь будет строка поиска</div>
+        <div class="search-bar">
+            <input
+                v-model="filterString"
+                type="text" 
+                class="search-bar-input"
+            >
+        </div>
 
         <section>
-            <template>
-                <div class="person-group">
-                    <!-- Отображать название группы -->
-                    <div class="list">
-                        <template v-for="person in filteredPersons">
-                            <div class="card">
-                                <table style="width: 100%">
-                                    <tr>
-                                        <td style="width: 0">
-                                            <div class="card-avatar">
-                                                <card-avatar :url="person.avatar"></card-avatar>
-                                                <div v-if="person.comments != null">
-                                                    {{ person.comments.length }}
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td style="max-width: 0">
-                                            <div class="card-name">
-                                                <b>{{ person.name }}</b>
-                                            </div>
-                                            <div class="card-email">{{ person.email }}</div>
-                                        </td>
-                                        <td style="width: 0">
-                                            <span class="action-btn" @click="onPersonEdit">edit</span>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </div>
-                        </template>
-                    </div>
-                </div>
-            </template>
+            <person-group
+                v-for="[position, persons] in filteredAndGroupedPersons"
+                :key="position"
+                :group-name="position"
+                :persons="persons"
+                @edit="onPersonEdit"
+            />
         </section>
-
-        <ui-popup v-if="isPersonEditMode">
-            <template #header>
-                <h3>Имя Фамилия Сотрудника</h3>
-            </template>
-            <template #body>
-                <div class="form">
-                    <div class="form-elem">
-                        <label class="form-elem-label">name</label>
-                        <input type="text" />
-                    </div>
-                    <div class="form-elem">
-                        <label class="form-elem-label">email</label>
-                        <input type="text" />
-                    </div>
-                    <div class="form-elem">
-                        <label class="form-elem-label">position</label>
-                        <select>
-                            <option v-for="value in positions" :value="value">{{ value }}</option>
-                        </select>
-                    </div>
-                </div>
-            </template>
-            <template #footer>
-                <div class="popup-btn-group">
-                    <button class="outline" @click="onPersonEdit">Отменить</button>
-                    <button @click="onPersonEdit">Сохранить</button>
-                </div>
-            </template>
-        </ui-popup>
+        
+        <person-edit 
+            v-if="isPersonEditMode" 
+            v-model="isPersonEditMode" 
+            :person="currentEditPerson"
+            @change="changePersonData"
+        />
     </div>
 </template>
 <script>
 // use this Service class to load data
-import ApiService from './api/service.js';
-import UiPopup from './components/Popup.vue';
-import CardAvatar from './components/Avatar.vue';
-import persons from './api/data';
+import ApiService from "./api/service.js";
+import PersonGroup from "./components/PersonGroup";
+import PersonEdit from "./components/PersonEdit";
 
 export default {
-    name: 'App',
-    components: { UiPopup, CardAvatar },
+    name: "App",
+    components: { PersonEdit, PersonGroup},
     data: () => ({
-        persons: persons,
+        persons: [],
         positions: [],
-        isPersonEditMode: false
+        filterString: "",
+        isPersonEditMode: false,
+        currentEditPerson: null
     }),
+    created() {
+        this.fetchPersons();
+    },
+    provide() {
+        return {
+            getPositions: () => this.positions
+        }
+    },
     computed: {
-        /**
-         * @return {import('./api/service.js').Person[]}
-         */
         filteredPersons() {
+            if (this.filterString) {
+                return this.persons.filter(person => {
+                    const { name, email } = person;
+                    const strArr = [...name.split(" "), ...email.split("@")];
+
+                    return strArr.find(str => {
+                        return str.toLowerCase().includes(this.filterString.toLowerCase());
+                    });
+                });
+            }
+
             return this.persons;
+        },
+        filteredAndGroupedPersons() {
+            const groupedPersons = this.filteredPersons.reduce((acc, person) => {
+                acc[person.position] = acc[person.position] || [];
+                acc[person.position].push(person);
+
+                return acc;
+            }, {});
+
+            return Object.entries(groupedPersons);
         }
     },
     methods: {
         async fetchPersons() {
-            // Use ApiService `getPersons` call here to load data
-            this.persons = persons ;
+            this.persons = await new ApiService().getPersons();
+            const positions = []
+            this.persons.forEach(person => positions.push(person.position))
+            
+            this.positions = [...(new Set(positions))]
         },
-        onPersonEdit() {
-            this.isPersonEditMode = !this.isPersonEditMode;
+        onPersonEdit(person) {
+            this.currentEditPerson = person
+            this.isPersonEditMode = true;
+        },
+        changePersonData(person) {
+            let changedPerson = this.persons.find(p => p.id === person.id)
+            const changedPersonIndex = this.persons.indexOf(changedPerson)
+            
+            this.persons.splice(changedPersonIndex, 1, person)
         }
     }
 };
 </script>
+
 <style lang="pcss" scoped>
 .search-bar {
     margin-bottom: 1rem;
-    &-input {
-        width: 100%;
-    }
-}
-.person-group {
-    margin-bottom: 2rem;
-
-    &-name {
-        margin-bottom: 1rem;
-    }
-}
-.popup-btn-group {
-    text-align: right;
-    button {
-        margin-left: 1rem;
-    }
-}
-.action-btn {
-    color: var(--color-primary);
-    font-size: var(--font-size-small);
-    line-height: 1;
-    border-bottom: 1px dashed currentColor;
-    cursor: pointer;
-}
-.list {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
 }
 
-.form {
-  width: 25rem;
-  &-elem {
-    margin-bottom: 1rem;
-    &:last-child {
-      margin-bottom: 0;
-    }
-    &-label {
-      display: block;
-      font-size: var(--font-size-small);
-      text-transform: uppercase;
-      opacity: 0.5;
-    }
-  }
+.search-bar-input {
+    width: 100%;
 }
-.card {
-  padding: 1rem;
-  background: white;
-  box-shadow: 0 1px 3px 1px rgba(0, 0, 0, 0.1);
-  &-avatar {
-    position: relative;
-    margin-right: 1rem;
-    &-email {
-      font-size: var(--font-size-small);
-    }
-    &-email,
-    &-name {
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-    }
-  }
-}
+
 </style>

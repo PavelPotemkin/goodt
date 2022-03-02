@@ -1,5 +1,5 @@
 <template>
-    <div class="popup">
+    <div v-if="value" class="popup">
         <div class="dialog">
             <div class="dialog-header">
                 <slot name="header"></slot>
@@ -8,11 +8,32 @@
                 <slot name="body"></slot>
             </div>
             <div class="dialog-footer">
-                <slot name="footer"></slot>
+                <slot name="footer" v-bind="{hide}"></slot>
             </div>
         </div>
     </div>
 </template>
+
+<script>
+export default {
+    name: 'UiPopup',
+    props: {
+        value: {
+            type: Boolean,
+            required: true
+        }
+    },
+    methods: {
+        hide() {
+            this.$emit('input', false)
+        },
+        show() {
+            this.$emit('input', true)
+        }
+    }
+}
+</script>
+
 <style lang="pcss" scoped>
 .popup {
     position: fixed;
