@@ -9,13 +9,23 @@
         </div>
 
         <section>
-            <person-group
-                v-for="[position, persons] in filteredAndGroupedPersons"
-                :key="position"
-                :group-name="position"
-                :persons="persons"
-                @edit="onPersonEdit"
-            />
+            <template v-if="filteredAndGroupedPersons.length">
+                <person-group
+                    v-for="[position, persons] in filteredAndGroupedPersons"
+                    :key="position"
+                    :group-name="position"
+                    :persons="persons"
+                    @edit="onPersonEdit"
+                />
+            </template>
+            
+            <template v-else-if="isDataLoading">
+                Загрузка
+            </template>
+
+            <template v-else>
+                Нет данных
+            </template>
         </section>
         
         <person-edit 
@@ -40,7 +50,8 @@ export default {
         positions: [],
         filterString: "",
         isPersonEditMode: false,
-        currentEditPerson: null
+        currentEditPerson: null,
+        isDataLoading: true
     }),
     created() {
         this.fetchPersons();
@@ -79,6 +90,7 @@ export default {
     methods: {
         async fetchPersons() {
             this.persons = await new ApiService().getPersons();
+            this.isDataLoading = false
             const positions = []
             this.persons.forEach(person => positions.push(person.position))
             
