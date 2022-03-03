@@ -1,5 +1,5 @@
 <template>
-    <person-card :person="person"/>
+    <person-card :person="person" @edit="$emit('edit', $event)"/>
 </template>
 
 <script>
