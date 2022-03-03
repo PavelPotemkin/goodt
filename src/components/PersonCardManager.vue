@@ -1,5 +1,5 @@
 <template>
-    <person-card :person="person" theme="dark"/>
+    <person-card :person="person"/>
 </template>
 
 <script>
@@ -13,6 +13,11 @@ export default {
             required: true
         }
     },
+    provide() {
+        return {
+            theme: 'dark'
+        }
+    }
 };
 </script>
 

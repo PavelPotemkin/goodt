@@ -49,13 +49,9 @@ export default {
             type: Object,
             required: true
         },
-        theme: {
-            type: String,
-            default: 'light',
-            validator(value) {
-                return ['dark', 'light'].indexOf(value) !== -1
-            }
-        }
+    },
+    inject: {
+        theme: { default: 'light' }
     },
     methods: {
         onPersonEdit(person) {
@@ -63,7 +59,7 @@ export default {
         }
     },
     computed: {
-        classObject() {
+        classObject() {            
             return {
                 'card_theme_light': this.theme === 'light',
                 'card_theme_dark': this.theme === 'dark'
