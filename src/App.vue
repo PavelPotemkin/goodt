@@ -9,13 +9,26 @@
 
             <section>
                 <template v-if="filteredAndGroupedPersons.length">
-                    <person-group
-                        v-for="[position, persons] in filteredAndGroupedPersons"
-                        :key="position"
-                        :group-name="position"
-                        :persons="persons"
-                        @edit="onPersonEdit"
-                    />
+                    <ui-lazy-list>
+                        <template v-slot:default="{currentItemIndex, onItemLoad, root}">
+                            <template
+                                v-for="([position, persons], index) in filteredAndGroupedPersons"
+                            >
+                                <ui-lazy
+                                    v-if="(currentItemIndex >= index)"
+                                    :root="root"
+                                    :key="position"
+                                    @load="onItemLoad(index)"
+                                >
+                                    <person-group
+                                        :group-name="position"
+                                        :persons="persons"
+                                        @edit="onPersonEdit"
+                                    />
+                                </ui-lazy>
+                            </template>
+                        </template>
+                    </ui-lazy-list>
                 </template>
                 
                 <template v-else>
@@ -38,10 +51,12 @@ import ApiService from "./api/service.js";
 import PersonGroup from "./components/PersonGroup";
 import PersonEdit from "./components/PersonEdit";
 import PersonSearch from "./components/PersonSearch";
+import UiLazyList from "./ui/UiLazyList";
+import UiLazy from "./ui/UiLazy";
 
 export default {
     name: "App",
-    components: { PersonSearch, PersonEdit, PersonGroup},
+    components: { UiLazy, UiLazyList, PersonSearch, PersonEdit, PersonGroup},
     data: () => ({
         persons: [],
         positions: [],

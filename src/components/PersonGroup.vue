@@ -29,6 +29,9 @@ export default {
             defaultComponent: PersonCard
         }
     },
+    created() {
+        console.log('AAAAAAAAAAAA');
+    },
     props: {
         groupName: {
             type: String,
