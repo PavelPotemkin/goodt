@@ -84,6 +84,11 @@ export default {
             & .card__active-btn {
                 color: var(--color-white);
             }
+
+            & .card__comments-count {
+                background: var(--color-white);
+                color: var(--color-primary);
+            }
         }
         
         &_light {
