@@ -1,39 +1,35 @@
 <template>
     <div id="app">
-        <div class="search-bar">
-            <input
-                v-model="filterString"
-                type="text" 
-                class="search-bar-input"
-            >
-        </div>
+        <template v-if="isDataLoading">
+            Загрузка
+        </template>
 
-        <section>
-            <template v-if="filteredAndGroupedPersons.length">
-                <person-group
-                    v-for="[position, persons] in filteredAndGroupedPersons"
-                    :key="position"
-                    :group-name="position"
-                    :persons="persons"
-                    @edit="onPersonEdit"
-                />
-            </template>
-            
-            <template v-else-if="isDataLoading">
-                Загрузка
-            </template>
+        <template v-else>
+            <person-search v-model="filterString"/>
 
-            <template v-else>
-                Нет данных
-            </template>
-        </section>
-        
-        <person-edit 
-            v-if="isPersonEditMode" 
-            v-model="isPersonEditMode" 
-            :person="currentEditPerson"
-            @change="changePersonData"
-        />
+            <section>
+                <template v-if="filteredAndGroupedPersons.length">
+                    <person-group
+                        v-for="[position, persons] in filteredAndGroupedPersons"
+                        :key="position"
+                        :group-name="position"
+                        :persons="persons"
+                        @edit="onPersonEdit"
+                    />
+                </template>
+                
+                <template v-else>
+                    Нет данных
+                </template>
+            </section>
+
+            <person-edit
+                v-if="isPersonEditMode"
+                v-model="isPersonEditMode"
+                :person="currentEditPerson"
+                @change="changePersonData"
+            />
+        </template>
     </div>
 </template>
 <script>
@@ -41,10 +37,11 @@
 import ApiService from "./api/service.js";
 import PersonGroup from "./components/PersonGroup";
 import PersonEdit from "./components/PersonEdit";
+import PersonSearch from "./components/PersonSearch";
 
 export default {
     name: "App",
-    components: { PersonEdit, PersonGroup},
+    components: { PersonSearch, PersonEdit, PersonGroup},
     data: () => ({
         persons: [],
         positions: [],
@@ -111,12 +108,5 @@ export default {
 </script>
 
 <style lang="pcss" scoped>
-.search-bar {
-    margin-bottom: 1rem;
-}
-
-.search-bar-input {
-    width: 100%;
-}
 
 </style>

@@ -1,5 +1,8 @@
 <template>
-    <div class="card">
+    <div 
+        class="card" 
+        :class="classObject"
+    >
         <div class="card__avatar">
             <avatar :url="person.avatar" />
 
@@ -27,7 +30,7 @@
 
         <div class="card__controls">
             <span
-                class="action-btn"
+                class="action-btn card__active-btn"
                 @click="onPersonEdit"
             >
                 edit
@@ -45,14 +48,26 @@ export default {
         person: {
             type: Object,
             required: true
+        },
+        theme: {
+            type: String,
+            default: 'light',
+            validator(value) {
+                return ['dark', 'light'].indexOf(value) !== -1
+            }
         }
-    },
-    created() {
-        console.log('123');
     },
     methods: {
         onPersonEdit(person) {
             this.$emit("edit", person);
+        }
+    },
+    computed: {
+        classObject() {
+            return {
+                'card_theme_light': this.theme === 'light',
+                'card_theme_dark': this.theme === 'dark'
+            }
         }
     }
 };
@@ -61,10 +76,25 @@ export default {
 <style lang="pcss" scoped>
 .card {
     padding: 1rem;
-    background: white;
     box-shadow: 0 1px 3px 1px rgba(0, 0, 0, 0.1);
     display: flex;
     justify-content: space-between;
+    
+    &_theme {
+        &_dark {
+            background-color: var(--color-primary);
+            color: var(--color-white);
+            
+            & .card__active-btn {
+                color: var(--color-white);
+            }
+        }
+        
+        &_light {
+            background-color: var(--color-white);
+            color: var(--color-black);
+        }
+    }
 
     &__inner {
         overflow: hidden;

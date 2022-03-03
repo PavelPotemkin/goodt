@@ -3,9 +3,10 @@
         <h2 class="person-group__title">{{ groupName }}</h2>
 
         <div class="person-group__list">
-            <person-card
+            <component
                 v-for="person in persons"
-                :key="person.id" 
+                :key="person.id"
+                :is="getComponent()"
                 :person="person"
                 @edit="onPersonEdit(person)"
             />
@@ -15,10 +16,19 @@
 
 <script>
 import PersonCard from "./PersonCard";
+import PersonCardManager from "./PersonCardManager";
 
 export default {
     name: "PersonGroup",
-    components: { PersonCard },
+    components: { PersonCard, PersonCardManager },
+    data() {
+        return {
+            componentsInfo: {
+                'manager': PersonCardManager
+            },
+            defaultComponent: PersonCard
+        }
+    },
     props: {
         groupName: {
             type: String,
@@ -32,6 +42,10 @@ export default {
     methods: {
         onPersonEdit(person) {
             this.$emit("edit", person);
+        },
+        getComponent() {
+            const componentType = this.componentsInfo[this.groupName.toLowerCase()]
+            return componentType ? componentType : this.defaultComponent
         }
     }
 };

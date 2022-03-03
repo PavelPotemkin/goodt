@@ -24,6 +24,7 @@
  * @property {string} baseUrl
  */
 export default class ApiService {
+    _instance = null
     /**
      * @param {ApiServiceOptions} options
      */

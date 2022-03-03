@@ -5,50 +5,72 @@
         </template>
         
         <template #body>
-            <div class="form">
-                <div class="form-elem">
-                    <label class="form-elem-label">
-                        name
-                    </label>
-                    
-                    <input 
-                        v-model="personData.name" 
-                        @change="onPersonDataChange" 
-                        type="text" 
-                    />
-                </div>
-                
-                <div class="form-elem">
-                    <label class="form-elem-label">
-                        email
-                    </label>
-                    
-                    <input
-                        v-model="personData.email"
-                        @change="onPersonDataChange" 
-                        type="text" 
-                    />
-                </div>
-                
-                <div class="form-elem">
-                    <label class="form-elem-label">
-                        position
-                    </label>
-                    
-                    <select 
-                        v-model="personData.position" 
-                        @change="onPersonDataChange"
-                    >
-                        <option 
-                            v-for="value in positions" 
-                            :value="value"
-                            :key="value"
+            <form 
+                class="form" 
+                @submit="saveData"
+            >
+                <div class="form__inner">
+                    <div class="form__elem">
+                        <label class="form__label">
+                            name
+                        </label>
+
+                        <input
+                            v-model="personData.name"
+                            @input="onPersonDataChange"
+                            type="text"
+                        />
+                    </div>
+
+                    <div class="form__elem">
+                        <label class="form__label">
+                            email
+                        </label>
+
+                        <input
+                            v-model="personData.email"
+                            @input="onPersonDataChange"
+                            type="text"
+                        />
+                    </div>
+
+                    <div class="form__elem">
+                        <label class="form__label">
+                            position
+                        </label>
+
+                        <select
+                            v-model="personData.position"
+                            @change="onPersonDataChange"
                         >
-                            {{ value }}
-                        </option>
-                    </select>
+                            <option
+                                v-for="value in positions"
+                                :value="value"
+                                :key="value"
+                            >
+                                {{ value }}
+                            </option>
+                        </select>
+                    </div>
                 </div>
-            </div>
+                
+                <div class="form__buttons">
+                    <button
+                        type="button"
+                        class="outline"
+                        @click="checkDataChange"
+                    >
+                        Отменить
+                    </button>
+
+                    <button
+                        type="submit"
+                        :disabled="!isPersonDataChange"
+                    >
+                        Сохранить
+                    </button>
+                </div>
+            </form>
             
             <ui-popup v-model="confirmChangePopupDisplay">
                 <template #header>
@@ -56,7 +78,7 @@
                 </template>
 
                 <template #footer="{hide}">
-                    <div class="popup-btn-group">
+                    <div class="form__buttons">
                         <button
                             class="outline"
                             @click="closeModal"
@@ -71,29 +93,11 @@
                 </template>
             </ui-popup>
         </template>
-        
-        <template #footer>
-            <div class="popup-btn-group">
-                <button 
-                    class="outline" 
-                    @click="checkDataChange"
-                >
-                    Отменить
-                </button>
-                
-                <button 
-                    :disabled="!isPersonDataChange" 
-                    @click="saveData"
-                >
-                    Сохранить
-                </button>
-            </div>
-        </template>
     </ui-popup>
 </template>
 
 <script>
-import UiPopup from "./UiPopup";
+import UiPopup from "../ui/UiPopup";
 export default {
     name: "PersonEdit",
     components: { UiPopup },
@@ -120,8 +124,10 @@ export default {
     },
     inject: ['getPositions'],
     methods: {
-        saveData() {
-            if (!this.isPersonDataChange) {
+        saveData(event) {
+            event.preventDefault()
+            
+            if (!this.isPersonDataChange || !this.isFormValid) {
                 return
             }
             this.$emit('change', this.personData)
@@ -141,32 +147,73 @@ export default {
         onPersonDataChange() {
             this.isPersonDataChange = true
         }
+    },
+    computed: {
+        isFormValid () {
+            if (!this.personData) {
+                return false
+            }
+
+            const validateEmail = (email) => {
+                return String(email)
+                .toLowerCase()
+                .match(
+                    /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+                );
+            };
+            
+            const validateName = (name) => {
+                return String(name)
+                .toLowerCase()
+                .match(/[A-Za-zА-ЯЁа-яё][A-Za-zА-ЯЁа-яё][\S]*\s[A-Za-zА-ЯЁа-яё][A-Za-zА-ЯЁа-яё][\S]*/ig)
+            }
+            
+            const {name, email, position} = this.personData
+            
+            if (!validateEmail(email)) {
+                console.log('email');
+                return false
+            }
+            
+            if (!position) {
+                console.log('position');
+                return false
+            }
+            
+            if (!validateName(name)) {
+                console.log('name');
+                return false
+            }
+            
+            return true
+        }
     }
 };
 </script>
 
 <style scoped>
-.popup-btn-group {
-    display: flex;
-    justify-content: space-between;
-}
-
 .form {
     width: 25rem;
 
-    &-elem {
+    &__elem {
         margin-bottom: 1rem;
 
         &:last-child {
             margin-bottom: 0;
         }
-
-        &-label {
-            display: block;
-            font-size: var(--font-size-small);
-            text-transform: uppercase;
-            opacity: 0.5;
-        }
+    }
+    
+    &__label {
+        display: block;
+        font-size: var(--font-size-small);
+        text-transform: uppercase;
+        opacity: 0.5;
+    }
+    
+    &__buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 2em;
     }
 }
 </style>

@@ -1,5 +1,12 @@
 <template>
-    <img class="avatar" :src="imgUrl" alt="avatar" ref="img" />
+    <img 
+        class="avatar" 
+        :src="imgUrl" 
+        alt="avatar" 
+        ref="img" 
+        @error="onError"
+        @load="onLoad"
+    />
 </template>
 
 <script>
@@ -7,7 +14,12 @@ export default {
     props: {
         url: { type: String }
     },
-    data: () => ({ imgUrl: '' }),
+    data() {
+        return { 
+            imgUrl: '',
+            isImageLoad: false
+        }
+    },
     watch: {
         url: {
             handler(val) {
@@ -17,18 +29,25 @@ export default {
         }
     },
     mounted() {
-        this.$refs.img.addEventListener('error', this.onError);
-    },
-    beforeDestroy() {
-        this.$refs.img.removeEventListener('error', this.onError);
+        // Картинки очень долго грузятся поэтому я сделал такой таймер на 2 секунды, чтобы, 
+        // если за 2 секунды картинки не загрузилиьс, тогда я меняю изображения на заглушки
+        setTimeout(() => {
+            if (!this.isImageLoad) {
+                this.onError()
+            }
+        }, 2000)
     },
     methods: {
         onError() {
             this.imgUrl = '/avatar.webp';
+        },
+        onLoad() {
+            this.isImageLoad = true
         }
     }
 };
 </script>
+
 <style scoped>
 .avatar {
     display: block;
