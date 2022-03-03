@@ -1,6 +1,7 @@
 <template>
     <div class="search-bar">
         <input
+            placeholder="Search by first/last"
             :value="value"
             @input="changeValue"
             type="text"

@@ -48,7 +48,7 @@ export default {
         filterString: "",
         isPersonEditMode: false,
         currentEditPerson: null,
-        isDataLoading: true
+        isDataLoading: true,
     }),
     created() {
         this.fetchPersons();
