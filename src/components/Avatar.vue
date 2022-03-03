@@ -39,7 +39,7 @@ export default {
     },
     methods: {
         onError() {
-            this.imgUrl = '/avatar.webp';
+            this.imgUrl = process.env.BASE_URL + 'avatar.webp';
         },
         onLoad() {
             this.isImageLoad = true
